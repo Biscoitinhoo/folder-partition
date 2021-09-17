@@ -1,4 +1,5 @@
 import os
+import shutil
 import optparse
 
 def main():
@@ -23,18 +24,16 @@ def main():
     
     try:
         dataset = os.path.join(str(folder))
-        create_training_and_validation_dir(dataset)        
 
-        for _, directory, _file in os.walk(dataset):
-            print('Directories: ', directory)
-            print('Files: ', _file)
+        create_training_and_validation_dir(dataset)
+        # copy_files_to_folders(dataset)
     except Exception as e:
         print(str(e))
         print("Apparently this path doesn't exists.")
 
 
 def usage():
-    print("""This program will split your data into 'training' and 'validation' folders. By default, it will take 80% of all your data inside each folder of the specified path and will split into the mentioned folders.""")
+    print("""Split your data into 'training' and 'validation' folders. By default, it will take 80% of all your data inside each folder of the specified path and will split into the mentioned folders.""")
     print('You can change the quantity/percentage using the arguments.')
     print('')
 
@@ -57,9 +56,18 @@ def usage():
     print('     python3 folder-partition.py --folder /home/biscoitinho/mnist_dataset --quantity 800')
 
 
+def copy_files_to_folders(directory):
+    training_path = directory + '/training'
+    validattion_path = directory + '/validation'
+
+    shutil.copytree(directory, training_path)
+    shutil.copytree(directory, validation_path)
+
+
 def create_training_and_validation_dir(directory):
     os.makedirs(directory + '/training', exist_ok=True)
     os.makedirs(directory + '/validation', exist_ok=True)
+
 
 if __name__ == '__main__':
     main()
