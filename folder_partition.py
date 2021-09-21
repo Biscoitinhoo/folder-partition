@@ -25,7 +25,58 @@ def main():
 
     # TODO: try/catch
     dataset = os.path.join(str(folder))
-    copy_files_to_folders(dataset)
+    copy_files_to_folders(dataset, quantity, percentage)
+
+
+def copy_files_to_folders(folder, quantity, percentage):
+    # TODO: progress bar
+    print('Loading...')
+    
+    validation = folder + '/validation'
+    training = folder + '/training'
+
+    # original directories (without validation and training)
+    original_directories = []
+
+    directories = os.listdir(folder)
+    for _dir in directories:
+        original_directories.append(_dir)
+
+    for dir in original_directories:
+        absolute_path = folder + '/' + dir
+        total_files = len(os.listdir(absolute_path))
+
+        for file in os.listdir(absolute_path):
+            print("Folder '" + dir + "', file: " + file)
+            
+        print("Total files in '" + dir + "' folder: " + str(total_files))
+
+    create_training_and_validation_dir(folder)
+
+    # split_files_into_folders(original_directories, validation, folder)
+    # split_files_into_folders(original_directories, training, folder)
+
+    print('Done.')
+
+
+def split_files_into_folders(original_directories, new_path, path):
+    for d in original_directories:
+        # cd to training/validation folder
+        os.chdir(new_path)
+        # create original folders
+        os.makedirs(d, exist_ok=True)
+        # cd to created folder
+        os.chdir(d)
+
+        current_directory = os.path.abspath(os.getcwd())
+        root_dir = path + '/' + d
+        # copy files from root directory to the new one
+        shutil.copytree(root_dir, current_directory, dirs_exist_ok=True)
+
+
+def create_training_and_validation_dir(directory):
+    os.makedirs(directory + '/training', exist_ok=True)
+    os.makedirs(directory + '/validation', exist_ok=True)
 
 
 def usage():
@@ -50,45 +101,6 @@ def usage():
     print('')
     print("Insert 800 of the data of the specified folder into 'training' folder and the rest into the 'validation' folder.")
     print('     python3 folder-partition.py --folder /home/biscoitinho/mnist_dataset --quantity 800')
-
-
-def copy_files_to_folders(path):
-    validation = path + '/validation'
-    training = path + '/training'
-
-    # original directories (without validation and training)
-    original_directories = []
-
-    directories = os.listdir(path)
-    for _dir in directories:
-        original_directories.append(_dir)
-
-    create_training_and_validation_dir(path)
-
-    split_files_into_folders(original_directories, validation, path)
-    split_files_into_folders(original_directories, training, path)
-
-    print('Done.')
-
-
-def split_files_into_folders(original_directories, new_path, path):
-    for d in original_directories:
-        # cd to training/validation folder
-        os.chdir(new_path)
-        # create original folders
-        os.makedirs(d, exist_ok=True)
-        # cd to created folder
-        os.chdir(d)
-
-        current_directory = os.path.abspath(os.getcwd())
-        root_dir = path + '/' + d
-        # copy files from root directory to the new one
-        shutil.copytree(root_dir, current_directory, dirs_exist_ok=True)
-
-
-def create_training_and_validation_dir(directory):
-    os.makedirs(directory + '/training', exist_ok=True)
-    os.makedirs(directory + '/validation', exist_ok=True)
 
 
 if __name__ == '__main__':
