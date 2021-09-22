@@ -1,30 +1,23 @@
 import os
 import os.path
 import shutil
-import optparse
+import argparse
 
 def main():
-    parser = optparse.OptionParser()
+    parser = argparse.ArgumentParser(description='Description of your program')
 
-    # dataset path
-    parser.add_option('-f', '--folder', dest='folder')        
-    # quantity of data to be splitted into 'training' folder). 
-    parser.add_option('-q', '--quantity', dest='quantity')
-    # split data using probability? E.g: '-p 80' will mean '80% of the data'.
-    parser.add_option('-p', '--percentage', dest='percentage')
+    parser.add_argument('-f','--folder', help="Path to the dataset folder (containing the directories with the data).", required=True)
+    parser.add_argument('-q','--quantity', help="Quantity of the data of all dataset folders to be inserted into 'training' folder. [Default: 80%% of the data.]")
+    parser.add_argument('-p','--percentage', help="Use percentage? Instead of '80' items, for example, it will be 80%% of the items.")
 
-    options, args = parser.parse_args()
+    args = vars(parser.parse_args())
 
-    folder = options.folder
-    quantity = options.quantity
-    percentage = options.percentage
+    folder = str(args['folder'])  
+    quantity = str(args['quantity'])
+    percentage = str(args['percentage'])
 
-    if not options.folder:
-        usage()
-        exit()
-
-    # TODO: try/catch
-    dataset = os.path.join(str(folder))
+    # # TODO: try/catch
+    dataset = os.path.join(folder)
     copy_files_to_folders(dataset, quantity, percentage)
 
 
@@ -53,10 +46,18 @@ def copy_files_to_folders(folder, quantity, percentage):
 
     create_training_and_validation_dir(folder)
 
-    # split_files_into_folders(original_directories, validation, folder)
-    # split_files_into_folders(original_directories, training, folder)
+    split_files_into_folders(original_directories, validation, folder)
+    split_files_into_folders(original_directories, training, folder)
 
     print('Done.')
+
+
+def divide_data_by_percentage(quantity):
+    print('percentage')
+
+
+def divide_data(quantity):
+    print('without percentage')
 
 
 def split_files_into_folders(original_directories, new_path, path):
@@ -84,10 +85,10 @@ def usage():
     print('You can change the quantity/percentage using the arguments.')
     print('')
 
-    print('Positional arguments:')
+    print('positional arguments:')
     print("     -f, --folder              Path to the dataset folder (containing the directories with the data).")
     print('')
-    print('Optional arguments:')
+    print('optional arguments:')
     print("     -q, --quantity            Quantity of the data of all dataset folders to be inserted into 'training' folder. [Default: 80% of the data.]")
     print("     -p, --percentage          Use percentage? Instead of '80' items, it will be 80% of the items.")
 
