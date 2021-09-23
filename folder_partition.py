@@ -13,7 +13,7 @@ def main():
 
     args = vars(parser.parse_args())
 
-    folder = str(args['folder'])  
+    folder = str(args['folder'])
     quantity = int(args['quantity'])
     percentage = str(args['percentage'])
 
@@ -37,16 +37,14 @@ def copy_files_to_folders(folder, quantity, percentage):
     validation_files = []
     training_files = []
 
-    # change to boolean, using string just for test :p
-    if percentage == 'None':
-        divide_data(original_directories, quantity, folder, validation_files, training_files)
-    else:
-        divide_data_by_percentage()
-
     create_training_and_validation_dir(folder)
 
-    split_files_into_folders(original_directories, validation_path, folder)
-    split_files_into_folders(original_directories, training_path, folder)
+    # change to boolean, using string just for test :p
+    if percentage == 'None':
+        divide_data(original_directories, quantity, folder, validation_path)
+        divide_data(original_directories, quantity, folder, training_path)
+    else:
+        divide_data_by_percentage()
 
     print('Done.')
 
@@ -55,36 +53,27 @@ def divide_data_by_percentage():
     return
 
 
-def divide_data(original_directories, quantity, folder, validation_files, training_files):
+def divide_data(original_directories, quantity, folder, destination):
     for dir in original_directories:
+        # cd to training/validation folder
+        os.chdir(destination)
+        # create original folders
+        os.makedirs(dir, exist_ok=True)
+        # cd to created folder
+        os.chdir(dir)
+
         absolute_path = folder + '/' + dir
+        current_dir = os.path.abspath(os.getcwd())
+
         total_files = len(os.listdir(absolute_path))
 
         total_validation_files = total_files - quantity
         total_training_files = total_files - total_validation_files
 
-        validation_files.append(total_validation_files)
-        training_files.append(total_training_files)
-
-        for file in os.listdir(absolute_path):
-            print(file)
+        for f in os.listdir(absolute_path):
+            file = absolute_path + '/' + f
+            shutil.copy(file, current_dir)
             
-        print("Total files in " + dir + " folder: " + str(total_files))
-
-
-def split_files_into_folders(original_directories, new_path, path):
-    for d in original_directories:
-        # cd to training/validation folder
-        os.chdir(new_path)
-        # create original folders
-        os.makedirs(d, exist_ok=True)
-        # cd to created folder
-        os.chdir(d)
-
-        current_directory = os.path.abspath(os.getcwd())
-        root_dir = path + '/' + d
-        # copy files from root directory to the new one
-        shutil.copytree(root_dir, current_directory, dirs_exist_ok=True)
 
 
 def create_training_and_validation_dir(directory):
