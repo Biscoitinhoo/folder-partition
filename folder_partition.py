@@ -70,11 +70,15 @@ def divide_data(original_directories, quantity, folder, destination):
         total_validation_files = total_files - quantity
         total_training_files = total_files - total_validation_files
 
+        transferred_files = 1
         for f in os.listdir(absolute_path):
             file = absolute_path + '/' + f
-            shutil.copy(file, current_dir)
+            if transferred_files <= total_training_files:
+                print('File ' + f + ' transferred into training folder.')
+                transferred_files += 1
+            else :
+                print('File ' + f + ' transferred into validation folder.')
             
-
 
 def create_training_and_validation_dir(directory):
     os.makedirs(directory + '/training', exist_ok=True)
