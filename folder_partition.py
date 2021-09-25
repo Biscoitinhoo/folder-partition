@@ -18,7 +18,6 @@ def main():
     percentage = bool(args['percentage'])
 
     dataset = os.path.join(folder)
-    print(str(percentage))
     copy_files_to_folders(dataset, quantity, percentage)
 
 
@@ -38,33 +37,29 @@ def copy_files_to_folders(folder, quantity, percentage):
     create_training_and_validation_dir(folder)
     
     for dir in original_directories:
-        # cd to training/validation folder
+        # create original folders inside validation/training folders
         os.chdir(validation_path)
-        # create original folders
         os.makedirs(dir, exist_ok=True)
 
-    for dir in original_directories:
-        # cd to training/validation folder
         os.chdir(training_path)
-        # create original folders
         os.makedirs(dir, exist_ok=True)
-    
+        
+
     if not quantity:
         # 80% training, 20% validation.
-        divide_data_default_mode(original_directories, training_path, folder)
-        # divide_data_default_mode(original_directories, validation_path, folder)
-        return
-
-    if not percentage:
-        divide_data_by_quantity(original_directories, quantity, folder, validation_path, validation_path, training_path)
-        divide_data_by_quantity(original_directories, quantity, folder, training_path, validation_path, training_path)
+        divide_data_default_mode(original_directories, training_path, folder, training_path, validation_path)
+        divide_data_default_mode(original_directories, validation_path, folder, training_path, validation_path)
     else:
-        divide_data_by_percentage()
+        if not percentage:
+            divide_data_by_quantity(original_directories, quantity, folder, validation_path, validation_path, training_path)
+            divide_data_by_quantity(original_directories, quantity, folder, training_path, validation_path, training_path)
+        else:
+            divide_data_by_percentage()
 
     print('Done.')
 
 
-def divide_data_default_mode(original_directories, destination, folder):
+def divide_data_default_mode(original_directories, destination, folder, training_folder, validation_folder):
     for dir in original_directories:
         # cd to training/validation folder
         os.chdir(destination)
@@ -77,7 +72,15 @@ def divide_data_default_mode(original_directories, destination, folder):
         total_files = len(os.listdir(absolute_path))
 
         total_training_files = int(0.8 * total_files)
-        print('80% of ' + str(total_files) + ' is ' + str(total_training_files))
+
+        transferred_files = 1
+        for f in os.listdir(absolute_path):
+            file = absolute_path + '/' + f
+            if transferred_files <= total_training_files:
+                shutil.copy(file, training_folder + '/' + dir)
+                transferred_files += 1
+            else:
+                shutil.copy(file, validation_folder + '/' + dir)
 
 
 def divide_data_by_percentage():
@@ -98,14 +101,13 @@ def divide_data_by_quantity(original_directories, quantity, folder, destination,
 
         total_files = len(os.listdir(absolute_path))
 
-        total_validation_files = total_files - quantity
+        total_validation_files = total_files - int(quantity)
         total_training_files = total_files - total_validation_files
 
         transferred_files = 1
         for f in os.listdir(absolute_path):
             file = absolute_path + '/' + f
             if transferred_files <= total_training_files:
-                # training_folder + '/' + dir
                 shutil.copy(file, training_folder + '/' + dir)
                 transferred_files += 1
             else:
