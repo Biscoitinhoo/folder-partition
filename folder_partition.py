@@ -8,16 +8,17 @@ def main():
     parser = argparse.ArgumentParser(description="Split your data into 'training' and 'validation' folders. By default, it will take 80% of all your data and put into the 'training' folder and the remaining into the 'validation' folder.")
 
     parser.add_argument('-f','--folder', help="Path to the dataset folder (containing the directories with the data).", required=True)
-    parser.add_argument('-q','--quantity', help="Quantity of the data of all dataset folders to be inserted into 'training' folder. [Default: 80%% of the data.]")
-    parser.add_argument('-p','--percentage', help="Use percentage? Instead of '80' items, for example, it will be 80%% of the items.")
+    parser.add_argument('-q','--quantity', help="Quantity of the data of all dataset folders to be inserted into 'training' folder. [Default: 80%% of the data.]", required=False)
+    parser.add_argument('-p','--percentage', help="Use percentage? Instead of '80' items, for example, it will be 80%% of the items.", action='store_true')
 
     args = vars(parser.parse_args())
 
     folder = str(args['folder'])
-    quantity = int(args['quantity'])
-    percentage = str(args['percentage'])
+    quantity = args['quantity']
+    percentage = bool(args['percentage'])
 
     dataset = os.path.join(folder)
+    print(str(percentage))
     copy_files_to_folders(dataset, quantity, percentage)
 
 
@@ -34,9 +35,6 @@ def copy_files_to_folders(folder, quantity, percentage):
     for _dir in directories:
         original_directories.append(_dir)
 
-    validation_files = []
-    training_files = []
-
     create_training_and_validation_dir(folder)
     
     for dir in original_directories:
@@ -51,22 +49,42 @@ def copy_files_to_folders(folder, quantity, percentage):
         # create original folders
         os.makedirs(dir, exist_ok=True)
     
+    if not quantity:
+        # 80% training, 20% validation.
+        divide_data_default_mode(original_directories, training_path, folder)
+        # divide_data_default_mode(original_directories, validation_path, folder)
+        return
 
-    # change to boolean, using string just for test :p
-    if percentage == 'None':
-        divide_data(original_directories, quantity, folder, validation_path, validation_path, training_path)
-        divide_data(original_directories, quantity, folder, training_path, validation_path, training_path)
+    if not percentage:
+        divide_data_by_quantity(original_directories, quantity, folder, validation_path, validation_path, training_path)
+        divide_data_by_quantity(original_directories, quantity, folder, training_path, validation_path, training_path)
     else:
         divide_data_by_percentage()
 
     print('Done.')
 
 
+def divide_data_default_mode(original_directories, destination, folder):
+    for dir in original_directories:
+        # cd to training/validation folder
+        os.chdir(destination)
+        # create original folders
+        os.makedirs(dir, exist_ok=True)
+        # cd to created folder
+        os.chdir(dir)
+
+        absolute_path = folder + '/' + dir
+        total_files = len(os.listdir(absolute_path))
+
+        total_training_files = int(0.8 * total_files)
+        print('80% of ' + str(total_files) + ' is ' + str(total_training_files))
+
+
 def divide_data_by_percentage():
     return
 
 
-def divide_data(original_directories, quantity, folder, destination, validation_folder, training_folder):
+def divide_data_by_quantity(original_directories, quantity, folder, destination, validation_folder, training_folder):
     for dir in original_directories:
         # cd to training/validation folder
         os.chdir(destination)
