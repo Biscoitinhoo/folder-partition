@@ -74,6 +74,7 @@ def divide_data(original_directories, quantity, folder, destination, validation_
         for f in os.listdir(absolute_path):
             file = absolute_path + '/' + f
             if transferred_files <= total_training_files:
+                # training_folder + '/' + dir
                 shutil.copy(file, training_folder)
                 transferred_files += 1
             else :
