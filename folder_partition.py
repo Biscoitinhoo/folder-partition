@@ -1,72 +1,128 @@
 import os
+import os.path
 import shutil
-import optparse
+import argparse
 
 def main():
-    parser = optparse.OptionParser()
+    # TODO: change folder argument as positional, not optional.
+    parser = argparse.ArgumentParser(description="Split your data into 'training' and 'validation' folders. By default, it will take 80% of all your data and put into the 'training' folder and the remaining into the 'validation' folder.")
 
-    # dataset path
-    parser.add_option('-f', '--folder', dest='folder')        
-    # quantity of data to be splitted into 'training' folder). 
-    parser.add_option('-q', '--quantity', dest='quantity')
-    # split data using probability? E.g: '-p 80' will mean '80% of the data'.
-    parser.add_option('-p', '--percentage', dest='percentage')
+    parser.add_argument('-f','--folder', help="Path to the dataset folder (containing the directories with the data).", required=True)
+    parser.add_argument('-q','--quantity', help="Quantity of the data of all dataset folders to be inserted into 'training' folder. [Default: 80%% of the data.]", required=False)
+    parser.add_argument('-p','--percentage', help="Use percentage? Instead of '80' items, for example, it will be 80%% of the items.", action='store_true')
 
-    options, args = parser.parse_args()
+    args = vars(parser.parse_args())
 
-    folder = options.folder
-    quantity = options.quantity
-    percentage = options.percentage
+    folder = str(args['folder'])
+    quantity = args['quantity']
+    percentage = bool(args['percentage'])
 
-    if not options.folder:
-        usage()
-        exit()
+    dataset = os.path.join(folder)
+    copy_files_to_folders(dataset, quantity, percentage)
+
+
+def copy_files_to_folders(folder, quantity, percentage):
+    print('Loading...')
     
-    try:
-        dataset = os.path.join(str(folder))
+    validation_path = folder + '/validation'
+    training_path = folder + '/training'
 
-        create_training_and_validation_dir(dataset)
-        # copy_files_to_folders(dataset)
-    except Exception as e:
-        print(str(e))
-        print("Apparently this path doesn't exists.")
+    # original directories to be copied
+    original_directories = []    
+
+    directories = os.listdir(folder)
+    for _dir in directories:
+        original_directories.append(_dir)
+
+    create_training_and_validation_dir(folder)
+    
+    # create original folders inside validation/training folders
+    for dir in original_directories:
+        os.chdir(validation_path)
+        os.makedirs(dir, exist_ok=True)
+
+        os.chdir(training_path)
+        os.makedirs(dir, exist_ok=True)
+
+    if not quantity:
+        # 80% training, 20% validation.
+        divide_data_default_mode(original_directories, training_path, folder, training_path, validation_path)
+        divide_data_default_mode(original_directories, validation_path, folder, training_path, validation_path)
+    else:
+        if not percentage:
+            divide_data_by_quantity(original_directories, quantity, folder, validation_path, validation_path, training_path)
+            divide_data_by_quantity(original_directories, quantity, folder, training_path, validation_path, training_path)
+        else:
+            divide_data_by_percentage()
+
+    print('Done.')
 
 
-def usage():
-    print("""Split your data into 'training' and 'validation' folders. By default, it will take 80% of all your data inside each folder of the specified path and will split into the mentioned folders.""")
-    print('You can change the quantity/percentage using the arguments.')
-    print('')
+def divide_data_default_mode(original_directories, destination, folder, training_folder, validation_folder):
+    for dir in original_directories:
+        # cd to training/validation folder
+        os.chdir(destination)
+        # cd to created folder
+        os.chdir(dir)
 
-    print('Positional arguments:')
-    print("     -f, --folder              Path to the dataset folder.")
-    print('')
-    print('Optional arguments:')
-    print("     -q, --quantity            Quantity of the data of all dataset folders to be inserted into 'training' folder. [Default: 80% of the data.]")
-    print("     -p, --percentage          Use percentage? Instead of '80' items, it will be 80% of the items.")
+        absolute_path = folder + '/' + dir
+        total_files = len(os.listdir(absolute_path))
 
-    print('')
+        # getting 80% of data
+        total_training_files = int(0.8 * total_files)
 
-    print('Examples')
+        transferred_files = 1
+        for f in os.listdir(absolute_path):
+            file = absolute_path + '/' + f
 
-    print('')
-    print("Insert 80% of the data of the specified folder into 'training' folder and 20% into 'validation' folder.")
-    print('     python3 folder-partition.py -f /home/biscoitinho/mnist_dataset -q 80 -pe=True')
-    print('')
-    print("Insert 800 of the data of the specified folder into 'training' folder and the rest into the 'validation' folder.")
-    print('     python3 folder-partition.py --folder /home/biscoitinho/mnist_dataset --quantity 800')
+            if transferred_files <= total_training_files:
+                shutil.copy(file, training_folder + '/' + dir)
+                transferred_files += 1
+            else:
+                shutil.copy(file, validation_folder + '/' + dir)
 
 
-def copy_files_to_folders(directory):
-    training_path = directory + '/training'
-    validattion_path = directory + '/validation'
+def divide_data_by_percentage():
+    return print('TODO')
 
-    shutil.copytree(directory, training_path)
-    shutil.copytree(directory, validation_path)
 
+def divide_data_by_quantity(original_directories, quantity, folder, destination, validation_folder, training_folder):
+    for dir in original_directories:
+        # cd to training/validation folder
+        os.chdir(destination)
+        # cd to created folder
+        os.chdir(dir)
+
+        absolute_path = folder + '/' + dir
+
+        total_files = len(os.listdir(absolute_path))
+
+        total_validation_files = total_files - int(quantity)
+        total_training_files = total_files - total_validation_files
+
+        transferred_files = 1
+        for f in os.listdir(absolute_path):
+            file = absolute_path + '/' + f
+            
+            if transferred_files <= total_training_files:
+                shutil.copy(file, training_folder + '/' + dir)
+                transferred_files += 1
+            else:
+                shutil.copy(file, validation_folder + '/' + dir)
+            
 
 def create_training_and_validation_dir(directory):
     os.makedirs(directory + '/training', exist_ok=True)
     os.makedirs(directory + '/validation', exist_ok=True)
+
+
+def usage():
+    print('')
+    print("Insert 60% of the data of the specified folder into 'training' folder and 40% into 'validation' folder.")
+    print('     python3 folder-partition.py -f /home/biscoitinho/mnist_dataset -q 60 -pe')
+    print('')
+    print("Insert 800 of the data of the specified folder into 'training' folder and the rest into the 'validation' folder.")
+    print('     python3 folder-partition.py --folder /home/biscoitinho/mnist_dataset --quantity 800')
 
 
 if __name__ == '__main__':
