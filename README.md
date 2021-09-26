@@ -1,6 +1,8 @@
 ## Folder partition
 Split your dataset into training and validation folders through terminal, without code implementation.
 
+![Alt text](folder-partition-example.png?raw=true)
+
 ### Installation
 You can download folder-partition by cloning the Git repository:    
 
