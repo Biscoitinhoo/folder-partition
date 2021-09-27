@@ -57,7 +57,11 @@ def copy_files_to_folders(folder, quantity, percentage):
 
 
 def divide_data_default_mode(original_directories, destination, folder, training_folder, validation_folder):
+
     for dir in original_directories:
+        files_inserted_into_training = 0
+        files_inserted_into_validation = 0
+
         # cd to training/validation folder
         os.chdir(destination)
         # cd to created folder
@@ -74,13 +78,21 @@ def divide_data_default_mode(original_directories, destination, folder, training
 
             if transferred_files <= total_training_files:
                 shutil.copy(file, training_folder + '/' + dir)
+                files_inserted_into_training += 1
+
                 transferred_files += 1
             else:
                 shutil.copy(file, validation_folder + '/' + dir)
+                files_inserted_into_validation += 1
+
+        print_copied_files(files_inserted_into_training, files_inserted_into_validation, total_files, dir)
 
 
 def divide_data_by_percentage(original_directories, percentage, folder, destination, validation_folder, training_folder):
     for dir in original_directories:
+        files_inserted_into_training = 0
+        files_inserted_into_validation = 0
+
         os.chdir(destination)
         os.chdir(dir)
 
@@ -95,13 +107,21 @@ def divide_data_by_percentage(original_directories, percentage, folder, destinat
 
             if transferred_files <= total_training_files:
                 shutil.copy(file, training_folder + '/' + dir)
+                files_inserted_into_training += 1
+
                 transferred_files += 1
             else:
                 shutil.copy(file, validation_folder + '/' + dir)
+                files_inserted_into_validation += 1
+
+        print_copied_files(files_inserted_into_training, files_inserted_into_validation, total_files, dir)
 
 
 def divide_data_by_quantity(original_directories, quantity, folder, destination, validation_folder, training_folder):
     for dir in original_directories:
+        files_inserted_into_training = 0
+        files_inserted_into_validation = 0
+
         os.chdir(destination)
         os.chdir(dir)
 
@@ -118,14 +138,23 @@ def divide_data_by_quantity(original_directories, quantity, folder, destination,
             
             if transferred_files <= total_training_files:
                 shutil.copy(file, training_folder + '/' + dir)
+                files_inserted_into_training += 1
+
                 transferred_files += 1
             else:
                 shutil.copy(file, validation_folder + '/' + dir)
-            
+                files_inserted_into_validation += 1
+
+        print_copied_files(files_inserted_into_training, files_inserted_into_validation, total_files, dir)
+    
 
 def create_training_and_validation_dir(directory):
     os.makedirs(directory + '/training', exist_ok=True)
     os.makedirs(directory + '/validation', exist_ok=True)
+
+
+def print_copied_files(training, validation, total_files, directory):
+    print('Directory ' + directory + ', ' + str(total_files) + ' files. ' + str(training) + ' files into training, ' + str(validation) + ' files into validation.')
 
 
 if __name__ == '__main__':
