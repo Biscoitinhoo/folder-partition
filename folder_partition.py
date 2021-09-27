@@ -61,9 +61,7 @@ def divide_data_default_mode(original_directories, destination, folder, training
         files_inserted_into_training = 0
         files_inserted_into_validation = 0
 
-        # cd to training/validation folder
         os.chdir(destination)
-        # cd to created folder
         os.chdir(dir)
 
         absolute_path = folder + '/' + dir
