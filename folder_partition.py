@@ -6,16 +6,17 @@ import argparse
 def main():
     # TODO: change folder argument as positional, not optional.
     parser = argparse.ArgumentParser(description="Split your data into 'training' and 'validation' folders. By default, it will take 80% of all your data and put into the 'training' folder and the remaining into the 'validation' folder.")
+    argument = parser.add_mutually_exclusive_group()
 
     parser.add_argument('-f','--folder', help="Path to the dataset folder (containing the directories with the data).", required=True)
-    parser.add_argument('-q','--quantity', help="Quantity of the data of all dataset folders to be inserted into 'training' folder. [Default: 80%% of the data.]", required=False)
-    parser.add_argument('-p','--percentage', help="Use percentage? Instead of '80' items, for example, it will be 80%% of the items.", action='store_true')
+    argument.add_argument('-q','--quantity', help="Quantity of data to be inserted into training folder. The difference will be inserted into validation [Default: 80%% into training].", required=False)
+    argument.add_argument('-p','--percentage', help="Percentage to be inserted into training/validation folder (max 100).", required=False)
 
     args = vars(parser.parse_args())
 
     folder = str(args['folder'])
     quantity = args['quantity']
-    percentage = bool(args['percentage'])
+    percentage = args['percentage']
 
     dataset = os.path.join(folder)
     copy_files_to_folders(dataset, quantity, percentage)
@@ -45,16 +46,12 @@ def copy_files_to_folders(folder, quantity, percentage):
         os.makedirs(dir, exist_ok=True)
 
     # TODO: create only one method, they do basically the same thing. also fix these parameters.
-    if not quantity:
-        divide_data_default_mode(original_directories, training_path, folder, training_path, validation_path)
+    if quantity:
+        divide_data_by_quantity(original_directories, int(quantity), folder, validation_path, validation_path, training_path)
+    if percentage:
+        divide_data_by_percentage(original_directories, int(percentage), folder, training_path, validation_path, training_path)
+    if not quantity and not percentage:
         divide_data_default_mode(original_directories, validation_path, folder, training_path, validation_path)
-    else:
-        if not percentage:
-            divide_data_by_quantity(original_directories, quantity, folder, validation_path, validation_path, training_path)
-            divide_data_by_quantity(original_directories, quantity, folder, training_path, validation_path, training_path)
-        else:
-            divide_data_by_percentage(original_directories, int(quantity), folder, training_path, validation_path, training_path)
-            divide_data_by_percentage(original_directories, int(quantity), folder, validation_path, validation_path, training_path)
 
     print('Done.')
 
@@ -82,7 +79,7 @@ def divide_data_default_mode(original_directories, destination, folder, training
                 shutil.copy(file, validation_folder + '/' + dir)
 
 
-def divide_data_by_percentage(original_directories, quantity, folder, destination, validation_folder, training_folder):
+def divide_data_by_percentage(original_directories, percentage, folder, destination, validation_folder, training_folder):
     for dir in original_directories:
         os.chdir(destination)
         os.chdir(dir)
@@ -90,7 +87,7 @@ def divide_data_by_percentage(original_directories, quantity, folder, destinatio
         absolute_path = folder + '/' + dir
         total_files = len(os.listdir(absolute_path))
 
-        total_training_files = int((quantity * total_files) / 100)
+        total_training_files = int((percentage * total_files) / 100)
 
         transferred_files = 1
         for f in os.listdir(absolute_path):
