@@ -57,7 +57,6 @@ def copy_files_to_folders(folder, quantity, percentage):
 
 
 def divide_data_default_mode(original_directories, destination, folder, training_folder, validation_folder):
-
     for dir in original_directories:
         files_inserted_into_training = 0
         files_inserted_into_validation = 0
