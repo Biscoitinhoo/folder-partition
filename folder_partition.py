@@ -44,8 +44,8 @@ def copy_files_to_folders(folder, quantity, percentage):
         os.chdir(training_path)
         os.makedirs(dir, exist_ok=True)
 
+    # TODO: create only one method, they do basically the same thing. also fix these parameters.
     if not quantity:
-        # 80% training, 20% validation.
         divide_data_default_mode(original_directories, training_path, folder, training_path, validation_path)
         divide_data_default_mode(original_directories, validation_path, folder, training_path, validation_path)
     else:
@@ -53,7 +53,8 @@ def copy_files_to_folders(folder, quantity, percentage):
             divide_data_by_quantity(original_directories, quantity, folder, validation_path, validation_path, training_path)
             divide_data_by_quantity(original_directories, quantity, folder, training_path, validation_path, training_path)
         else:
-            divide_data_by_percentage()
+            divide_data_by_percentage(original_directories, int(quantity), folder, training_path, validation_path, training_path)
+            divide_data_by_percentage(original_directories, int(quantity), folder, validation_path, validation_path, training_path)
 
     print('Done.')
 
@@ -68,7 +69,6 @@ def divide_data_default_mode(original_directories, destination, folder, training
         absolute_path = folder + '/' + dir
         total_files = len(os.listdir(absolute_path))
 
-        # getting 80% of data
         total_training_files = int(0.8 * total_files)
 
         transferred_files = 1
@@ -82,15 +82,30 @@ def divide_data_default_mode(original_directories, destination, folder, training
                 shutil.copy(file, validation_folder + '/' + dir)
 
 
-def divide_data_by_percentage():
-    return print('TODO')
+def divide_data_by_percentage(original_directories, quantity, folder, destination, validation_folder, training_folder):
+    for dir in original_directories:
+        os.chdir(destination)
+        os.chdir(dir)
+
+        absolute_path = folder + '/' + dir
+        total_files = len(os.listdir(absolute_path))
+
+        total_training_files = int((quantity * total_files) / 100)
+
+        transferred_files = 1
+        for f in os.listdir(absolute_path):
+            file = absolute_path + '/' + f
+
+            if transferred_files <= total_training_files:
+                shutil.copy(file, training_folder + '/' + dir)
+                transferred_files += 1
+            else:
+                shutil.copy(file, validation_folder + '/' + dir)
 
 
 def divide_data_by_quantity(original_directories, quantity, folder, destination, validation_folder, training_folder):
     for dir in original_directories:
-        # cd to training/validation folder
         os.chdir(destination)
-        # cd to created folder
         os.chdir(dir)
 
         absolute_path = folder + '/' + dir
@@ -114,15 +129,6 @@ def divide_data_by_quantity(original_directories, quantity, folder, destination,
 def create_training_and_validation_dir(directory):
     os.makedirs(directory + '/training', exist_ok=True)
     os.makedirs(directory + '/validation', exist_ok=True)
-
-
-def usage():
-    print('')
-    print("Insert 60% of the data of the specified folder into 'training' folder and 40% into 'validation' folder.")
-    print('     python3 folder-partition.py -f /home/biscoitinho/mnist_dataset -q 60 -pe')
-    print('')
-    print("Insert 800 of the data of the specified folder into 'training' folder and the rest into the 'validation' folder.")
-    print('     python3 folder-partition.py --folder /home/biscoitinho/mnist_dataset --quantity 800')
 
 
 if __name__ == '__main__':
