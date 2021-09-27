@@ -18,8 +18,6 @@ To see the help section, use:
     -f      Path to the dataset. (positional)
     -q      Quantity of data to be inserted into training folder. The difference will be inserted into validation. (optional)
     -p      Percentage to be inserted into training/validation folder (max 100). (optional)
-    -q      Quantity of data to be inserted into training folder. The rest will be inserted into validation. (optional)
-    -p      Use quantity as percentage. Instead of 80 items (quantity), for example, it will be 80% of all your data inside each folder. (optional)
     
 ### Examples
 All examples take in consideration 1000 data into each folder.
@@ -39,5 +37,4 @@ Split data with specific quantity.
 Split data using percentage
 
     python3 folder-partition.py -f /home/biscoitinho/dogs-and-cats -p 50
-    python3 folder-partition.py -f /home/biscoitinho/dogs-and-cats -q 50 -p
     Output: 500 files into training, 500 into validation.
